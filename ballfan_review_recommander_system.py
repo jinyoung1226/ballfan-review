@@ -76,7 +76,7 @@ review_collection = chroma_client.get_or_create_collection(name="review_vectors"
 
 # 리뷰 텍스트 요청 바디 스키마
 class ReviewText(BaseModel):
-    review_id: str
+    review_id: int
     review: str
     stadium: str
     
@@ -133,6 +133,24 @@ def save_review(data: ReviewText):
     )
 
     return {"message": "리뷰 텍스트 벡터 저장 완료"}
+
+
+
+
+# 리뷰 삭제 시, 좌석과 텍스트 벡터 db에서 review_id 기반으로 삭제하는 메서드 
+@app.delete("/review/delete/{review_id}")
+def delete_review(review_id: int):
+    try:
+        # 좌석 벡터 삭제
+        seat_collection.delete(ids=[str(review_id)])
+
+        # 리뷰 텍스트 벡터 삭제
+        review_collection.delete(ids=[str(review_id)])
+
+        return {"message": f"review_id {review_id} 에 해당하는 벡터 삭제 완료"}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"벡터 삭제 중 오류 발생: {str(e)}")
 
 
 
